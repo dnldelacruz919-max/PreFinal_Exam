@@ -1,4 +1,8 @@
 import React from 'react';
+import oceanFreshImage from './images/ocean-fresh.png';
+import sweetBloomImage from './images/sweet-bloom.png';
+import midnightMuskImage from './images/midnight-musk.png';
+
 
 const initialProducts = [
   {
@@ -10,7 +14,7 @@ const initialProducts = [
     description: 'A refreshing scent for everyday use.',
     specification: '100ml bottle, fresh fragrance',
     rating: 4.5,
-    image: 'https://placehold.co/200x150?text=Ocean+Fresh'
+    image: oceanFreshImage
   },
   {
     id: 2,
@@ -21,7 +25,7 @@ const initialProducts = [
     description: 'A sweet floral fragrance for daily wear.',
     specification: '100ml bottle, floral fragrance',
     rating: 4.7,
-    image: 'https://placehold.co/200x150?text=Sweet+Bloom'
+    image: sweetBloomImage
   },
   {
     id: 3,
@@ -32,7 +36,7 @@ const initialProducts = [
     description: 'A warm musk scent for special occasions.',
     specification: '100ml bottle, musk fragrance',
     rating: 4.8,
-    image: 'https://placehold.co/200x150?text=Midnight+Musk'
+    image: midnightMuskImage
   }
 ];
 
