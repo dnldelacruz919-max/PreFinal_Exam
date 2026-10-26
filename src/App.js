@@ -57,9 +57,9 @@ function App() {
   const [stockFilter, setStockFilter] = React.useState('All');
   const [cart, setCart] = React.useState([]);
   const [showAddForm, setShowAddForm] = React.useState(false);
-  const [formMessage, setFormMessage] = React.useState('');
-  const [editingProductId, setEditingProductId] = React.useState(null);
   const [showEditForm, setShowEditForm] = React.useState(false);
+  const [editingProductId, setEditingProductId] = React.useState(null);
+  const [formMessage, setFormMessage] = React.useState('');
 
   const emptyForm = {
     name: '',
@@ -104,7 +104,7 @@ function App() {
 
     const matchesSearch = product.name
       .toLowerCase()
-      .includes(searchTerm.toLowerCase());
+      .includes(searchTerm.toLowerCase().trim());
 
     const matchesStock =
       stockFilter === 'All' ||
@@ -129,17 +129,27 @@ function App() {
 
   function handleFormChange(event) {
     const { name, value } = event.target;
-    setForm((current) => ({ ...current, [name]: value }));
+
+    setForm((current) => ({
+      ...current,
+      [name]: value,
+    }));
+
     setFormMessage('');
   }
 
   function handleEditFormChange(event) {
     const { name, value } = event.target;
-    setEditForm((current) => ({ ...current, [name]: value }));
+
+    setEditForm((current) => ({
+      ...current,
+      [name]: value,
+    }));
   }
 
   function readImage(event, setter) {
     const file = event.target.files && event.target.files[0];
+
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
@@ -151,7 +161,10 @@ function App() {
     const reader = new FileReader();
 
     reader.onload = () => {
-      setter((current) => ({ ...current, image: reader.result }));
+      setter((current) => ({
+        ...current,
+        image: reader.result,
+      }));
     };
 
     reader.onerror = () => {
@@ -197,7 +210,9 @@ function App() {
     const rating = Number(form.rating);
 
     if (!name || form.price === '' || form.quantity === '') {
-      setFormMessage('Please fill in the product name, price, and quantity.');
+      setFormMessage(
+        'Please fill in the product name, price, and quantity.'
+      );
       return;
     }
 
@@ -207,7 +222,9 @@ function App() {
     }
 
     if (!Number.isInteger(quantity) || quantity < 0) {
-      setFormMessage('Quantity must be a whole number of zero or more.');
+      setFormMessage(
+        'Quantity must be a whole number of zero or more.'
+      );
       return;
     }
 
@@ -222,13 +239,17 @@ function App() {
       category: form.category,
       price,
       quantity,
-      description: form.description.trim() || 'A lovely fragrance for everyday use.',
-      specification: form.specification.trim() || '100ml bottle',
+      description:
+        form.description.trim() ||
+        'A lovely fragrance for everyday use.',
+      specification:
+        form.specification.trim() || '100ml bottle',
       rating,
       image: form.image || categoryImages[form.category],
     };
 
     setProducts((current) => [...current, newProduct]);
+
     setSelectedCategory('All');
     setSearchTerm('');
     setStockFilter('All');
@@ -270,8 +291,11 @@ function App() {
       category: editForm.category,
       price,
       quantity,
-      description: editForm.description.trim() || 'A lovely fragrance for everyday use.',
-      specification: editForm.specification.trim() || '100ml bottle',
+      description:
+        editForm.description.trim() ||
+        'A lovely fragrance for everyday use.',
+      specification:
+        editForm.specification.trim() || '100ml bottle',
       rating,
       image: editForm.image || categoryImages[editForm.category],
     };
@@ -284,7 +308,6 @@ function App() {
       )
     );
 
-    // Keep the cart item synchronized with edited product details.
     setCart((current) =>
       current.map((item) =>
         item.id === editingProductId
@@ -298,8 +321,15 @@ function App() {
     setFormMessage('Product updated successfully!');
   }
 
+  function cancelEdit() {
+    setShowEditForm(false);
+    setEditingProductId(null);
+  }
+
   function addToCart(product) {
-    const currentProduct = products.find((item) => item.id === product.id);
+    const currentProduct = products.find(
+      (item) => item.id === product.id
+    );
 
     if (!currentProduct || currentProduct.quantity <= 0) {
       alert('Sorry, this product is out of stock.');
@@ -315,7 +345,9 @@ function App() {
     );
 
     setCart((current) => {
-      const existing = current.find((item) => item.id === product.id);
+      const existing = current.find(
+        (item) => item.id === product.id
+      );
 
       if (existing) {
         return current.map((item) =>
@@ -325,12 +357,17 @@ function App() {
         );
       }
 
-      return [...current, { ...currentProduct, cartQuantity: 1 }];
+      return [
+        ...current,
+        { ...currentProduct, cartQuantity: 1 },
+      ];
     });
   }
 
   function increaseCartQuantity(productId) {
-    const product = products.find((item) => item.id === productId);
+    const product = products.find(
+      (item) => item.id === productId
+    );
 
     if (!product || product.quantity <= 0) {
       alert('No more stock available for this product.');
@@ -355,7 +392,10 @@ function App() {
   }
 
   function decreaseCartQuantity(productId) {
-    const cartItem = cart.find((item) => item.id === productId);
+    const cartItem = cart.find(
+      (item) => item.id === productId
+    );
+
     if (!cartItem) return;
 
     if (cartItem.cartQuantity === 1) {
@@ -381,13 +421,19 @@ function App() {
   }
 
   function removeFromCart(productId) {
-    const cartItem = cart.find((item) => item.id === productId);
+    const cartItem = cart.find(
+      (item) => item.id === productId
+    );
+
     if (!cartItem) return;
 
     setProducts((current) =>
       current.map((item) =>
         item.id === productId
-          ? { ...item, quantity: item.quantity + cartItem.cartQuantity }
+          ? {
+              ...item,
+              quantity: item.quantity + cartItem.cartQuantity,
+            }
           : item
       )
     );
@@ -400,15 +446,39 @@ function App() {
   function clearCart() {
     setProducts((current) =>
       current.map((product) => {
-        const cartItem = cart.find((item) => item.id === product.id);
+        const cartItem = cart.find(
+          (item) => item.id === product.id
+        );
 
         return cartItem
-          ? { ...product, quantity: product.quantity + cartItem.cartQuantity }
+          ? {
+              ...product,
+              quantity: product.quantity + cartItem.cartQuantity,
+            }
           : product;
       })
     );
 
     setCart([]);
+  }
+
+  function scrollToProduct(productId) {
+    setSelectedCategory('All');
+    setSearchTerm('');
+    setStockFilter('All');
+
+    window.setTimeout(() => {
+      const target = document.getElementById(
+        'product-' + productId
+      );
+
+      if (target) {
+        target.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+        });
+      }
+    }, 100);
   }
 
   function renderProductCard(product) {
@@ -420,7 +490,9 @@ function App() {
       >
         <div className="product-image">
           <img src={product.image} alt={product.name} />
-          <span className="product-category">{product.category}</span>
+          <span className="product-category">
+            {product.category}
+          </span>
         </div>
 
         <div className="product-details">
@@ -429,10 +501,17 @@ function App() {
             <span className="rating">★ {product.rating}</span>
           </div>
 
-          <h2 className="product-price">₱{formatPrice(product.price)}</h2>
+          <h2 className="product-price">
+            ₱{formatPrice(product.price)}
+          </h2>
 
-          <p className="product-description">{product.description}</p>
-          <p className="product-specification">{product.specification}</p>
+          <p className="product-description">
+            {product.description}
+          </p>
+
+          <p className="product-specification">
+            {product.specification}
+          </p>
 
           <div className="product-stock">
             <span>Available stock</span>
@@ -450,10 +529,10 @@ function App() {
           )}
 
           <p className="product-subtotal">
-            Inventory value: ₱{formatPrice(product.price * product.quantity)}
+            Inventory value: ₱
+            {formatPrice(product.price * product.quantity)}
           </p>
 
-          {/* Both buttons are inside this product's card. */}
           <div className="product-card-actions">
             <button
               type="button"
@@ -469,7 +548,9 @@ function App() {
               onClick={() => addToCart(product)}
               disabled={product.quantity === 0}
             >
-              {product.quantity === 0 ? 'Out of Stock' : '+ Add to Cart'}
+              {product.quantity === 0
+                ? 'Out of Stock'
+                : '+ Add to Cart'}
             </button>
           </div>
         </div>
@@ -498,7 +579,9 @@ function App() {
           <div>
             <p className="banner-label">DISCOVER YOUR SCENT</p>
             <h2>Find Your Signature Scent</h2>
-            <p>Explore fragrances for every mood and every moment.</p>
+            <p>
+              Explore fragrances for every mood and every moment.
+            </p>
           </div>
           <span className="banner-icon">✦</span>
         </section>
@@ -518,24 +601,7 @@ function App() {
                 type="button"
                 className="featured-item"
                 key={product.id}
-                onClick={() => {
-                  setSelectedCategory('All');
-                  setSearchTerm('');
-                  setStockFilter('All');
-
-                  setTimeout(() => {
-                    const target = document.getElementById(
-                      'product-' + product.id
-                    );
-
-                    if (target) {
-                      target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'center',
-                      });
-                    }
-                  }, 100);
-                }}
+                onClick={() => scrollToProduct(product.id)}
               >
                 <img src={product.image} alt={product.name} />
                 <h3>{product.name}</h3>
@@ -560,7 +626,9 @@ function App() {
                   className="product-search"
                   placeholder="Search cologne name..."
                   value={searchTerm}
-                  onChange={(event) => setSearchTerm(event.target.value)}
+                  onChange={(event) =>
+                    setSearchTerm(event.target.value)
+                  }
                 />
               </label>
 
@@ -568,7 +636,9 @@ function App() {
                 Category
                 <select
                   value={selectedCategory}
-                  onChange={(event) => setSelectedCategory(event.target.value)}
+                  onChange={(event) =>
+                    setSelectedCategory(event.target.value)
+                  }
                 >
                   <option value="All">All Categories</option>
                   {categories.map((category) => (
@@ -583,7 +653,9 @@ function App() {
                 Stock Status
                 <select
                   value={stockFilter}
-                  onChange={(event) => setStockFilter(event.target.value)}
+                  onChange={(event) =>
+                    setStockFilter(event.target.value)
+                  }
                 >
                   <option value="All">All Stock</option>
                   <option value="Low Stock">Low Stock (1–4)</option>
@@ -611,11 +683,13 @@ function App() {
           </p>
 
           {formMessage && !showAddForm && !showEditForm && (
-            <p className="form-message" role="status">{formMessage}</p>
+            <p className="form-message" role="status">
+              {formMessage}
+            </p>
           )}
 
           <div className="product-grid">
-            {filteredProducts.map((product) => renderProductCard(product))}
+            {filteredProducts.map(renderProductCard)}
           </div>
 
           {filteredProducts.length === 0 && (
@@ -655,7 +729,9 @@ function App() {
                       required
                     >
                       {categories.map((category) => (
-                        <option key={category} value={category}>{category}</option>
+                        <option key={category} value={category}>
+                          {category}
+                        </option>
                       ))}
                     </select>
                   </label>
@@ -735,12 +811,17 @@ function App() {
                 {form.image && (
                   <div className="new-image-preview">
                     <p>Image preview</p>
-                    <img src={form.image} alt="New product preview" />
+                    <img
+                      src={form.image}
+                      alt="New product preview"
+                    />
                   </div>
                 )}
 
                 {formMessage && (
-                  <p className="form-message" role="alert">{formMessage}</p>
+                  <p className="form-message" role="alert">
+                    {formMessage}
+                  </p>
                 )}
 
                 <div className="form-actions">
@@ -793,7 +874,9 @@ function App() {
                       required
                     >
                       {categories.map((category) => (
-                        <option key={category} value={category}>{category}</option>
+                        <option key={category} value={category}>
+                          {category}
+                        </option>
                       ))}
                     </select>
                   </label>
@@ -869,7 +952,10 @@ function App() {
                 {editForm.image && (
                   <div className="new-image-preview">
                     <p>Image preview</p>
-                    <img src={editForm.image} alt="Product preview" />
+                    <img
+                      src={editForm.image}
+                      alt="Product preview"
+                    />
                   </div>
                 )}
 
@@ -881,10 +967,7 @@ function App() {
                   <button
                     type="button"
                     className="secondary-button"
-                    onClick={() => {
-                      setShowEditForm(false);
-                      setEditingProductId(null);
-                    }}
+                    onClick={cancelEdit}
                   >
                     Cancel
                   </button>
@@ -922,15 +1005,21 @@ function App() {
                     <div className="quantity-controls">
                       <button
                         type="button"
-                        onClick={() => decreaseCartQuantity(item.id)}
+                        onClick={() =>
+                          decreaseCartQuantity(item.id)
+                        }
                         aria-label={`Decrease ${item.name} quantity`}
                       >
                         −
                       </button>
+
                       <strong>{item.cartQuantity}</strong>
+
                       <button
                         type="button"
-                        onClick={() => increaseCartQuantity(item.id)}
+                        onClick={() =>
+                          increaseCartQuantity(item.id)
+                        }
                         aria-label={`Increase ${item.name} quantity`}
                       >
                         +
@@ -938,7 +1027,8 @@ function App() {
                     </div>
 
                     <strong className="cart-subtotal">
-                      ₱{formatPrice(item.price * item.cartQuantity)}
+                      ₱
+                      {formatPrice(item.price * item.cartQuantity)}
                     </strong>
 
                     <button
