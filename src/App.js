@@ -22,22 +22,18 @@ const initialProducts = [
   { id: 2, name: 'Ocean Mist', category: 'Fresh', price: 160, quantity: 12, description: 'A light and breezy aquatic scent.', specification: '100ml bottle', rating: 4.4 },
   { id: 3, name: 'Blue Wave', category: 'Fresh', price: 170, quantity: 8, description: 'A cool, clean fragrance for daily wear.', specification: '100ml bottle', rating: 4.6 },
   { id: 4, name: 'Aqua Breeze', category: 'Fresh', price: 175, quantity: 9, description: 'A crisp aquatic fragrance.', specification: '100ml bottle', rating: 4.3 },
-
   { id: 5, name: 'Sweet Bloom', category: 'Floral', price: 180, quantity: 3, description: 'A sweet floral fragrance for daily wear.', specification: '100ml bottle', rating: 4.7 },
   { id: 6, name: 'Rose Petal', category: 'Floral', price: 185, quantity: 7, description: 'A delicate rose-inspired fragrance.', specification: '100ml bottle', rating: 4.5 },
   { id: 7, name: 'Pink Blossom', category: 'Floral', price: 190, quantity: 6, description: 'A soft floral scent with a sweet finish.', specification: '100ml bottle', rating: 4.6 },
   { id: 8, name: 'Floral Kiss', category: 'Floral', price: 195, quantity: 8, description: 'A charming fragrance for everyday use.', specification: '100ml bottle', rating: 4.4 },
-
   { id: 9, name: 'Midnight Musk', category: 'Woody', price: 220, quantity: 20, description: 'A warm musk scent for special occasions.', specification: '100ml bottle', rating: 4.8 },
   { id: 10, name: 'Dark Woods', category: 'Woody', price: 230, quantity: 9, description: 'A deep woody fragrance.', specification: '100ml bottle', rating: 4.6 },
   { id: 11, name: 'Nightfall', category: 'Woody', price: 240, quantity: 7, description: 'A rich evening fragrance.', specification: '100ml bottle', rating: 4.7 },
   { id: 12, name: 'Velvet Musk', category: 'Woody', price: 245, quantity: 11, description: 'A smooth and warm musk scent.', specification: '100ml bottle', rating: 4.5 },
-
   { id: 13, name: 'Golden Amber', category: 'Amber', price: 250, quantity: 10, description: 'A warm amber fragrance with a rich scent.', specification: '100ml bottle', rating: 4.8 },
   { id: 14, name: 'Amber Glow', category: 'Amber', price: 255, quantity: 8, description: 'A smooth, golden-inspired fragrance.', specification: '100ml bottle', rating: 4.6 },
   { id: 15, name: 'Golden Hour', category: 'Amber', price: 260, quantity: 6, description: 'A warm scent for special occasions.', specification: '100ml bottle', rating: 4.5 },
   { id: 16, name: 'Amber Woods', category: 'Amber', price: 265, quantity: 9, description: 'A cozy fragrance with woody notes.', specification: '100ml bottle', rating: 4.7 },
-
   { id: 17, name: 'Citrus Burst', category: 'Citrus', price: 160, quantity: 15, description: 'A bright citrus fragrance for everyday wear.', specification: '100ml bottle', rating: 4.6 },
   { id: 18, name: 'Lemon Zest', category: 'Citrus', price: 165, quantity: 12, description: 'A zesty lemon-inspired scent.', specification: '100ml bottle', rating: 4.4 },
   { id: 19, name: 'Orange Splash', category: 'Citrus', price: 170, quantity: 10, description: 'A lively orange fragrance.', specification: '100ml bottle', rating: 4.5 },
@@ -62,8 +58,10 @@ function App() {
   const [cart, setCart] = React.useState([]);
   const [showAddForm, setShowAddForm] = React.useState(false);
   const [formMessage, setFormMessage] = React.useState('');
+  const [editingProductId, setEditingProductId] = React.useState(null);
+  const [showEditForm, setShowEditForm] = React.useState(false);
 
-  const [form, setForm] = React.useState({
+  const emptyForm = {
     name: '',
     category: 'Fresh',
     price: '',
@@ -72,7 +70,10 @@ function App() {
     specification: '100ml bottle',
     rating: '5',
     image: '',
-  });
+  };
+
+  const [form, setForm] = React.useState({ ...emptyForm });
+  const [editForm, setEditForm] = React.useState({ ...emptyForm });
 
   const totalProducts = products.length;
 
@@ -100,11 +101,11 @@ function App() {
     const matchesCategory =
       selectedCategory === 'All' ||
       product.category === selectedCategory;
-  
+
     const matchesSearch = product.name
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
-  
+
     const matchesStock =
       stockFilter === 'All' ||
       (stockFilter === 'Low Stock' &&
@@ -112,7 +113,7 @@ function App() {
         product.quantity <= 4) ||
       (stockFilter === 'Out of Stock' &&
         product.quantity === 0);
-  
+
     return matchesCategory && matchesSearch && matchesStock;
   });
 
@@ -128,40 +129,63 @@ function App() {
 
   function handleFormChange(event) {
     const { name, value } = event.target;
-
-    setForm((current) => ({
-      ...current,
-      [name]: value,
-    }));
-
+    setForm((current) => ({ ...current, [name]: value }));
     setFormMessage('');
   }
 
-  function handleImageChange(event) {
-    const file = event.target.files && event.target.files[0];
+  function handleEditFormChange(event) {
+    const { name, value } = event.target;
+    setEditForm((current) => ({ ...current, [name]: value }));
+  }
 
+  function readImage(event, setter) {
+    const file = event.target.files && event.target.files[0];
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      setFormMessage('Please choose a valid image file.');
+      alert('Please choose a valid image file.');
+      event.target.value = '';
       return;
     }
 
     const reader = new FileReader();
 
     reader.onload = () => {
-      setForm((current) => ({
-        ...current,
-        image: reader.result,
-      }));
-      setFormMessage('');
+      setter((current) => ({ ...current, image: reader.result }));
     };
 
     reader.onerror = () => {
-      setFormMessage('The image could not be loaded. Try another file.');
+      alert('The image could not be loaded. Try another file.');
     };
 
     reader.readAsDataURL(file);
+  }
+
+  function handleImageChange(event) {
+    readImage(event, setForm);
+  }
+
+  function handleEditImageChange(event) {
+    readImage(event, setEditForm);
+  }
+
+  function handleEditProduct(product) {
+    setEditingProductId(product.id);
+
+    setEditForm({
+      name: product.name,
+      category: product.category,
+      price: String(product.price),
+      quantity: String(product.quantity),
+      description: product.description,
+      specification: product.specification,
+      rating: String(product.rating),
+      image: product.image,
+    });
+
+    setShowAddForm(false);
+    setShowEditForm(true);
+    setFormMessage('');
   }
 
   function handleAddProduct(event) {
@@ -173,9 +197,7 @@ function App() {
     const rating = Number(form.rating);
 
     if (!name || form.price === '' || form.quantity === '') {
-      setFormMessage(
-        'Please fill in the product name, price, and quantity.'
-      );
+      setFormMessage('Please fill in the product name, price, and quantity.');
       return;
     }
 
@@ -185,9 +207,7 @@ function App() {
     }
 
     if (!Number.isInteger(quantity) || quantity < 0) {
-      setFormMessage(
-        'Quantity must be a whole number of zero or more.'
-      );
+      setFormMessage('Quantity must be a whole number of zero or more.');
       return;
     }
 
@@ -197,46 +217,89 @@ function App() {
     }
 
     const newProduct = {
-      id:
-        products.reduce(
-          (max, product) => Math.max(max, product.id),
-          0
-        ) + 1,
+      id: Math.max(0, ...products.map((product) => product.id)) + 1,
       name,
       category: form.category,
       price,
       quantity,
-      description:
-        form.description.trim() ||
-        'A lovely fragrance for everyday use.',
-      specification:
-        form.specification.trim() || '100ml bottle',
+      description: form.description.trim() || 'A lovely fragrance for everyday use.',
+      specification: form.specification.trim() || '100ml bottle',
       rating,
       image: form.image || categoryImages[form.category],
     };
 
     setProducts((current) => [...current, newProduct]);
     setSelectedCategory('All');
-
-    setForm({
-      name: '',
-      category: 'Fresh',
-      price: '',
-      quantity: '',
-      description: '',
-      specification: '100ml bottle',
-      rating: '5',
-      image: '',
-    });
-
+    setSearchTerm('');
+    setStockFilter('All');
+    setForm({ ...emptyForm });
     setFormMessage('Product added successfully!');
     setShowAddForm(false);
   }
 
-  function addToCart(product) {
-    const currentProduct = products.find(
-      (item) => item.id === product.id
+  function handleUpdateProduct(event) {
+    event.preventDefault();
+
+    const name = editForm.name.trim();
+    const price = Number(editForm.price);
+    const quantity = Number(editForm.quantity);
+    const rating = Number(editForm.rating);
+
+    if (!name || editForm.price === '' || editForm.quantity === '') {
+      alert('Please fill in the product name, price, and quantity.');
+      return;
+    }
+
+    if (!Number.isFinite(price) || price <= 0) {
+      alert('Enter a price greater than zero.');
+      return;
+    }
+
+    if (!Number.isInteger(quantity) || quantity < 0) {
+      alert('Quantity must be a whole number of zero or more.');
+      return;
+    }
+
+    if (!Number.isFinite(rating) || rating < 0 || rating > 5) {
+      alert('Rating must be between 0 and 5.');
+      return;
+    }
+
+    const updatedProduct = {
+      name,
+      category: editForm.category,
+      price,
+      quantity,
+      description: editForm.description.trim() || 'A lovely fragrance for everyday use.',
+      specification: editForm.specification.trim() || '100ml bottle',
+      rating,
+      image: editForm.image || categoryImages[editForm.category],
+    };
+
+    setProducts((current) =>
+      current.map((product) =>
+        product.id === editingProductId
+          ? { ...product, ...updatedProduct }
+          : product
+      )
     );
+
+    // Keep the cart item synchronized with edited product details.
+    setCart((current) =>
+      current.map((item) =>
+        item.id === editingProductId
+          ? { ...item, ...updatedProduct }
+          : item
+      )
+    );
+
+    setShowEditForm(false);
+    setEditingProductId(null);
+    setFormMessage('Product updated successfully!');
+  }
+
+  function addToCart(product) {
+    const currentProduct = products.find((item) => item.id === product.id);
 
     if (!currentProduct || currentProduct.quantity <= 0) {
       alert('Sorry, this product is out of stock.');
@@ -252,32 +315,22 @@ function App() {
     );
 
     setCart((current) => {
-      const existing = current.find(
-        (item) => item.id === product.id
-      );
+      const existing = current.find((item) => item.id === product.id);
 
       if (existing) {
         return current.map((item) =>
           item.id === product.id
-            ? {
-                ...item,
-                cartQuantity: item.cartQuantity + 1,
-              }
+            ? { ...item, cartQuantity: item.cartQuantity + 1 }
             : item
         );
       }
 
-      return [
-        ...current,
-        { ...product, cartQuantity: 1 },
-      ];
+      return [...current, { ...currentProduct, cartQuantity: 1 }];
     });
   }
 
   function increaseCartQuantity(productId) {
-    const product = products.find(
-      (item) => item.id === productId
-    );
+    const product = products.find((item) => item.id === productId);
 
     if (!product || product.quantity <= 0) {
       alert('No more stock available for this product.');
@@ -295,20 +348,14 @@ function App() {
     setCart((current) =>
       current.map((item) =>
         item.id === productId
-          ? {
-              ...item,
-              cartQuantity: item.cartQuantity + 1,
-            }
+          ? { ...item, cartQuantity: item.cartQuantity + 1 }
           : item
       )
     );
   }
 
   function decreaseCartQuantity(productId) {
-    const cartItem = cart.find(
-      (item) => item.id === productId
-    );
-
+    const cartItem = cart.find((item) => item.id === productId);
     if (!cartItem) return;
 
     if (cartItem.cartQuantity === 1) {
@@ -327,29 +374,20 @@ function App() {
     setCart((current) =>
       current.map((item) =>
         item.id === productId
-          ? {
-              ...item,
-              cartQuantity: item.cartQuantity - 1,
-            }
+          ? { ...item, cartQuantity: item.cartQuantity - 1 }
           : item
       )
     );
   }
 
   function removeFromCart(productId) {
-    const cartItem = cart.find(
-      (item) => item.id === productId
-    );
-
+    const cartItem = cart.find((item) => item.id === productId);
     if (!cartItem) return;
 
     setProducts((current) =>
       current.map((item) =>
         item.id === productId
-          ? {
-              ...item,
-              quantity: item.quantity + cartItem.cartQuantity,
-            }
+          ? { ...item, quantity: item.quantity + cartItem.cartQuantity }
           : item
       )
     );
@@ -362,15 +400,10 @@ function App() {
   function clearCart() {
     setProducts((current) =>
       current.map((product) => {
-        const cartItem = cart.find(
-          (item) => item.id === product.id
-        );
+        const cartItem = cart.find((item) => item.id === product.id);
 
         return cartItem
-          ? {
-              ...product,
-              quantity: product.quantity + cartItem.cartQuantity,
-            }
+          ? { ...product, quantity: product.quantity + cartItem.cartQuantity }
           : product;
       })
     );
@@ -387,9 +420,7 @@ function App() {
       >
         <div className="product-image">
           <img src={product.image} alt={product.name} />
-          <span className="product-category">
-            {product.category}
-          </span>
+          <span className="product-category">{product.category}</span>
         </div>
 
         <div className="product-details">
@@ -398,17 +429,10 @@ function App() {
             <span className="rating">★ {product.rating}</span>
           </div>
 
-          <h2 className="product-price">
-            ₱{formatPrice(product.price)}
-          </h2>
+          <h2 className="product-price">₱{formatPrice(product.price)}</h2>
 
-          <p className="product-description">
-            {product.description}
-          </p>
-
-          <p className="product-specification">
-            {product.specification}
-          </p>
+          <p className="product-description">{product.description}</p>
+          <p className="product-specification">{product.specification}</p>
 
           <div className="product-stock">
             <span>Available stock</span>
@@ -426,20 +450,28 @@ function App() {
           )}
 
           <p className="product-subtotal">
-            Inventory value: ₱
-            {formatPrice(product.price * product.quantity)}
+            Inventory value: ₱{formatPrice(product.price * product.quantity)}
           </p>
 
-          <button
-            type="button"
-            className="add-to-cart-button"
-            onClick={() => addToCart(product)}
-            disabled={product.quantity === 0}
-          >
-            {product.quantity === 0
-              ? 'Out of Stock'
-              : '＋ Add to Cart'}
-          </button>
+          {/* Both buttons are inside this product's card. */}
+          <div className="product-card-actions">
+            <button
+              type="button"
+              className="edit-product-button"
+              onClick={() => handleEditProduct(product)}
+            >
+              Edit Product
+            </button>
+
+            <button
+              type="button"
+              className="add-to-cart-button"
+              onClick={() => addToCart(product)}
+              disabled={product.quantity === 0}
+            >
+              {product.quantity === 0 ? 'Out of Stock' : '+ Add to Cart'}
+            </button>
+          </div>
         </div>
       </article>
     );
@@ -466,9 +498,7 @@ function App() {
           <div>
             <p className="banner-label">DISCOVER YOUR SCENT</p>
             <h2>Find Your Signature Scent</h2>
-            <p>
-              Explore fragrances for every mood and every moment.
-            </p>
+            <p>Explore fragrances for every mood and every moment.</p>
           </div>
           <span className="banner-icon">✦</span>
         </section>
@@ -490,6 +520,8 @@ function App() {
                 key={product.id}
                 onClick={() => {
                   setSelectedCategory('All');
+                  setSearchTerm('');
+                  setStockFilter('All');
 
                   setTimeout(() => {
                     const target = document.getElementById(
@@ -514,76 +546,83 @@ function App() {
         </section>
 
         <section className="section">
-        <div className="section-heading products-heading">
-          <div>
-            <p className="eyebrow">BROWSE THE COLLECTION</p>
-            <h2>Products</h2>
+          <div className="section-heading products-heading">
+            <div>
+              <p className="eyebrow">BROWSE THE COLLECTION</p>
+              <h2>Products</h2>
+            </div>
+
+            <div className="product-filters">
+              <label className="search-label">
+                Search Products
+                <input
+                  type="search"
+                  className="product-search"
+                  placeholder="Search cologne name..."
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                />
+              </label>
+
+              <label className="category-select-label">
+                Category
+                <select
+                  value={selectedCategory}
+                  onChange={(event) => setSelectedCategory(event.target.value)}
+                >
+                  <option value="All">All Categories</option>
+                  {categories.map((category) => (
+                    <option value={category} key={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="category-select-label">
+                Stock Status
+                <select
+                  value={stockFilter}
+                  onChange={(event) => setStockFilter(event.target.value)}
+                >
+                  <option value="All">All Stock</option>
+                  <option value="Low Stock">Low Stock (1–4)</option>
+                  <option value="Out of Stock">Out of Stock (0)</option>
+                </select>
+              </label>
+
+              <button
+                type="button"
+                className="primary-button"
+                onClick={() => {
+                  setShowEditForm(false);
+                  setEditingProductId(null);
+                  setShowAddForm((current) => !current);
+                  setFormMessage('');
+                }}
+              >
+                {showAddForm ? 'Close Add Form' : '+ Add New Product'}
+              </button>
+            </div>
           </div>
 
-          <div className="product-filters">
-            <label className="search-label">
-              Search Products
-              <input
-                type="search"
-                className="product-search"
-                placeholder="Search cologne name..."
-                value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
-              />
-            </label>
-
-            <label className="category-select-label">
-              Category
-              <select
-                value={selectedCategory}
-                onChange={(event) =>
-                  setSelectedCategory(event.target.value)
-                }
-              >
-                <option value="All">All Categories</option>
-                {categories.map((category) => (
-                  <option value={category} key={category}>
-                    {category}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label className="category-select-label">
-              Stock Status
-              <select
-                value={stockFilter}
-                onChange={(event) => setStockFilter(event.target.value)}
-              >
-                <option value="All">All Stock</option>
-                <option value="Low Stock">Low Stock (1–4)</option>
-                <option value="Out of Stock">Out of Stock (0)</option>
-              </select>
-            </label>
-          </div>
-        </div>
           <p className="results-count">
             Showing {filteredProducts.length} of {totalProducts} products
           </p>
 
+          {formMessage && !showAddForm && !showEditForm && (
+            <p className="form-message" role="status">{formMessage}</p>
+          )}
+
           <div className="product-grid">
-            {filteredProducts.map((product) =>
-              renderProductCard(product)
-            )}
+            {filteredProducts.map((product) => renderProductCard(product))}
           </div>
 
-          <div className="add-new-area">
-            <button
-              type="button"
-              className="primary-button"
-              onClick={() => {
-                setShowAddForm((current) => !current);
-                setFormMessage('');
-              }}
-            >
-              {showAddForm ? 'Cancel' : '＋ Add New Product'}
-            </button>
-          </div>
+          {filteredProducts.length === 0 && (
+            <p className="empty-cart">
+              No products found. Try changing your search or filters.
+            </p>
+          )}
 
           {showAddForm && (
             <section className="panel add-product-panel">
@@ -616,9 +655,7 @@ function App() {
                       required
                     >
                       {categories.map((category) => (
-                        <option key={category} value={category}>
-                          {category}
-                        </option>
+                        <option key={category} value={category}>{category}</option>
                       ))}
                     </select>
                   </label>
@@ -698,17 +735,12 @@ function App() {
                 {form.image && (
                   <div className="new-image-preview">
                     <p>Image preview</p>
-                    <img
-                      src={form.image}
-                      alt="New product preview"
-                    />
+                    <img src={form.image} alt="New product preview" />
                   </div>
                 )}
 
                 {formMessage && (
-                  <p className="form-message" role="alert">
-                    {formMessage}
-                  </p>
+                  <p className="form-message" role="alert">{formMessage}</p>
                 )}
 
                 <div className="form-actions">
@@ -722,6 +754,136 @@ function App() {
                     onClick={() => {
                       setShowAddForm(false);
                       setFormMessage('');
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </section>
+          )}
+
+          {showEditForm && (
+            <section className="panel add-product-panel">
+              <div className="section-heading">
+                <div>
+                  <p className="eyebrow">INVENTORY MANAGEMENT</p>
+                  <h2>Edit Product</h2>
+                </div>
+              </div>
+
+              <form onSubmit={handleUpdateProduct}>
+                <div className="form-grid">
+                  <label>
+                    Product Name *
+                    <input
+                      name="name"
+                      value={editForm.name}
+                      onChange={handleEditFormChange}
+                      required
+                    />
+                  </label>
+
+                  <label>
+                    Category *
+                    <select
+                      name="category"
+                      value={editForm.category}
+                      onChange={handleEditFormChange}
+                      required
+                    >
+                      {categories.map((category) => (
+                        <option key={category} value={category}>{category}</option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label>
+                    Price (₱) *
+                    <input
+                      name="price"
+                      type="number"
+                      min="0.01"
+                      step="0.01"
+                      value={editForm.price}
+                      onChange={handleEditFormChange}
+                      required
+                    />
+                  </label>
+
+                  <label>
+                    Stock Quantity *
+                    <input
+                      name="quantity"
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={editForm.quantity}
+                      onChange={handleEditFormChange}
+                      required
+                    />
+                  </label>
+
+                  <label>
+                    Specification
+                    <input
+                      name="specification"
+                      value={editForm.specification}
+                      onChange={handleEditFormChange}
+                    />
+                  </label>
+
+                  <label>
+                    Rating (0–5)
+                    <input
+                      name="rating"
+                      type="number"
+                      min="0"
+                      max="5"
+                      step="0.1"
+                      value={editForm.rating}
+                      onChange={handleEditFormChange}
+                    />
+                  </label>
+
+                  <label className="form-full-width">
+                    Description
+                    <textarea
+                      name="description"
+                      value={editForm.description}
+                      onChange={handleEditFormChange}
+                      rows="3"
+                    />
+                  </label>
+
+                  <label className="form-full-width">
+                    Change Product Image
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleEditImageChange}
+                    />
+                  </label>
+                </div>
+
+                {editForm.image && (
+                  <div className="new-image-preview">
+                    <p>Image preview</p>
+                    <img src={editForm.image} alt="Product preview" />
+                  </div>
+                )}
+
+                <div className="form-actions">
+                  <button type="submit" className="primary-button">
+                    Save Changes
+                  </button>
+
+                  <button
+                    type="button"
+                    className="secondary-button"
+                    onClick={() => {
+                      setShowEditForm(false);
+                      setEditingProductId(null);
                     }}
                   >
                     Cancel
@@ -760,9 +922,7 @@ function App() {
                     <div className="quantity-controls">
                       <button
                         type="button"
-                        onClick={() =>
-                          decreaseCartQuantity(item.id)
-                        }
+                        onClick={() => decreaseCartQuantity(item.id)}
                         aria-label={`Decrease ${item.name} quantity`}
                       >
                         −
@@ -770,9 +930,7 @@ function App() {
                       <strong>{item.cartQuantity}</strong>
                       <button
                         type="button"
-                        onClick={() =>
-                          increaseCartQuantity(item.id)
-                        }
+                        onClick={() => increaseCartQuantity(item.id)}
                         aria-label={`Increase ${item.name} quantity`}
                       >
                         +
@@ -780,8 +938,7 @@ function App() {
                     </div>
 
                     <strong className="cart-subtotal">
-                      ₱
-                      {formatPrice(item.price * item.cartQuantity)}
+                      ₱{formatPrice(item.price * item.cartQuantity)}
                     </strong>
 
                     <button

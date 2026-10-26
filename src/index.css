@@ -1218,3 +1218,33 @@ button:disabled {
     box-sizing: border-box;
   }
 }
+
+.product-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.edit-product-button {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid #f45b0b;
+  border-radius: 10px;
+  background: #fff6e8;
+  color: #482413;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.edit-product-button:hover {
+  background: #f45b0b;
+  color: #ffffff;
+}
+
+.product-card-actions .add-to-cart-button {
+  width: 100%;
+  margin-top: 0;
+}
