@@ -57,6 +57,7 @@ function formatPrice(amount) {
 function App() {
   const [products, setProducts] = React.useState(initialProducts);
   const [selectedCategory, setSelectedCategory] = React.useState('All');
+  const [searchTerm, setSearchTerm] = React.useState('');
   const [cart, setCart] = React.useState([]);
   const [showAddForm, setShowAddForm] = React.useState(false);
   const [formMessage, setFormMessage] = React.useState('');
@@ -94,12 +95,16 @@ function App() {
     0
   );
 
-  const filteredProducts =
-    selectedCategory === 'All'
-      ? products
-      : products.filter(
-          (product) => product.category === selectedCategory
-        );
+  const filteredProducts = products.filter((product) => {
+    const matchesCategory =
+      selectedCategory === 'All' ||
+      product.category === selectedCategory;
+  
+    const matchesSearch =
+      product.name.toLowerCase().includes(searchTerm.toLowerCase());
+  
+    return matchesCategory && matchesSearch;
+  });
 
   const featuredProducts = [
     'Ocean Fresh',
@@ -499,11 +504,23 @@ function App() {
         </section>
 
         <section className="section">
-          <div className="section-heading products-heading">
-            <div>
-              <p className="eyebrow">BROWSE THE COLLECTION</p>
-              <h2>Products</h2>
-            </div>
+        <div className="section-heading products-heading">
+          <div>
+            <p className="eyebrow">BROWSE THE COLLECTION</p>
+            <h2>Products</h2>
+          </div>
+
+          <div className="product-filters">
+            <label className="search-label">
+              Search Products
+              <input
+                type="search"
+                className="product-search"
+                placeholder="Search cologne name..."
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+              />
+            </label>
 
             <label className="category-select-label">
               Category
@@ -522,7 +539,7 @@ function App() {
               </select>
             </label>
           </div>
-
+        </div>
           <p className="results-count">
             Showing {filteredProducts.length} of {totalProducts} products
           </p>
