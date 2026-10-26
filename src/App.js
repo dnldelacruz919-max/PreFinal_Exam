@@ -58,6 +58,7 @@ function App() {
   const [products, setProducts] = React.useState(initialProducts);
   const [selectedCategory, setSelectedCategory] = React.useState('All');
   const [searchTerm, setSearchTerm] = React.useState('');
+  const [stockFilter, setStockFilter] = React.useState('All');
   const [cart, setCart] = React.useState([]);
   const [showAddForm, setShowAddForm] = React.useState(false);
   const [formMessage, setFormMessage] = React.useState('');
@@ -100,10 +101,19 @@ function App() {
       selectedCategory === 'All' ||
       product.category === selectedCategory;
   
-    const matchesSearch =
-      product.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = product.name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
   
-    return matchesCategory && matchesSearch;
+    const matchesStock =
+      stockFilter === 'All' ||
+      (stockFilter === 'Low Stock' &&
+        product.quantity > 0 &&
+        product.quantity <= 4) ||
+      (stockFilter === 'Out of Stock' &&
+        product.quantity === 0);
+  
+    return matchesCategory && matchesSearch && matchesStock;
   });
 
   const featuredProducts = [
@@ -536,6 +546,18 @@ function App() {
                     {category}
                   </option>
                 ))}
+              </select>
+            </label>
+
+            <label className="category-select-label">
+              Stock Status
+              <select
+                value={stockFilter}
+                onChange={(event) => setStockFilter(event.target.value)}
+              >
+                <option value="All">All Stock</option>
+                <option value="Low Stock">Low Stock (1–4)</option>
+                <option value="Out of Stock">Out of Stock (0)</option>
               </select>
             </label>
           </div>
