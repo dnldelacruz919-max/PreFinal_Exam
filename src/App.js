@@ -38,10 +38,7 @@ const initialProducts = [
   { id: 18, name: 'Lemon Zest', category: 'Citrus', price: 165, quantity: 12, description: 'A zesty lemon-inspired scent.', specification: '100ml bottle', rating: 4.4 },
   { id: 19, name: 'Orange Splash', category: 'Citrus', price: 170, quantity: 10, description: 'A lively orange fragrance.', specification: '100ml bottle', rating: 4.5 },
   { id: 20, name: 'Lime Fresh', category: 'Citrus', price: 175, quantity: 8, description: 'A crisp, refreshing citrus scent.', specification: '100ml bottle', rating: 4.3 },
-].map((product) => ({
-  ...product,
-  image: categoryImages[product.category],
-}));
+].map((product) => ({ ...product, image: categoryImages[product.category] }));
 
 function formatPrice(amount) {
   return Number(amount).toLocaleString('en-PH', {
@@ -60,6 +57,9 @@ function App() {
   const [showEditForm, setShowEditForm] = React.useState(false);
   const [editingProductId, setEditingProductId] = React.useState(null);
   const [formMessage, setFormMessage] = React.useState('');
+  const [showCheckout, setShowCheckout] = React.useState(false);
+  const [customerName, setCustomerName] = React.useState('');
+  const [completedOrder, setCompletedOrder] = React.useState(null);
 
   const emptyForm = {
     name: '',
@@ -76,101 +76,55 @@ function App() {
   const [editForm, setEditForm] = React.useState({ ...emptyForm });
 
   const totalProducts = products.length;
-
   const totalInventoryValue = products.reduce(
-    (total, product) => total + product.price * product.quantity,
-    0
+    (total, product) => total + product.price * product.quantity, 0
   );
-
   const totalStock = products.reduce(
-    (total, product) => total + product.quantity,
-    0
+    (total, product) => total + product.quantity, 0
   );
-
   const cartCount = cart.reduce(
-    (total, item) => total + item.cartQuantity,
-    0
+    (total, item) => total + item.cartQuantity, 0
   );
-
   const cartTotal = cart.reduce(
-    (total, item) => total + item.price * item.cartQuantity,
-    0
+    (total, item) => total + item.price * item.cartQuantity, 0
   );
 
   const filteredProducts = products.filter((product) => {
-    const matchesCategory =
-      selectedCategory === 'All' ||
-      product.category === selectedCategory;
-
-    const matchesSearch = product.name
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase().trim());
-
+    const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
+    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase().trim());
     const matchesStock =
       stockFilter === 'All' ||
-      (stockFilter === 'Low Stock' &&
-        product.quantity > 0 &&
-        product.quantity <= 4) ||
-      (stockFilter === 'Out of Stock' &&
-        product.quantity === 0);
-
+      (stockFilter === 'Low Stock' && product.quantity > 0 && product.quantity <= 4) ||
+      (stockFilter === 'Out of Stock' && product.quantity === 0);
     return matchesCategory && matchesSearch && matchesStock;
   });
 
   const featuredProducts = [
-    'Ocean Fresh',
-    'Sweet Bloom',
-    'Midnight Musk',
-    'Golden Amber',
-    'Citrus Burst',
-  ]
-    .map((name) => products.find((product) => product.name === name))
-    .filter(Boolean);
+    'Ocean Fresh', 'Sweet Bloom', 'Midnight Musk', 'Golden Amber', 'Citrus Burst',
+  ].map((name) => products.find((product) => product.name === name)).filter(Boolean);
 
   function handleFormChange(event) {
     const { name, value } = event.target;
-
-    setForm((current) => ({
-      ...current,
-      [name]: value,
-    }));
-
+    setForm((current) => ({ ...current, [name]: value }));
     setFormMessage('');
   }
 
   function handleEditFormChange(event) {
     const { name, value } = event.target;
-
-    setEditForm((current) => ({
-      ...current,
-      [name]: value,
-    }));
+    setEditForm((current) => ({ ...current, [name]: value }));
   }
 
   function readImage(event, setter) {
     const file = event.target.files && event.target.files[0];
-
     if (!file) return;
-
     if (!file.type.startsWith('image/')) {
       alert('Please choose a valid image file.');
       event.target.value = '';
       return;
     }
-
     const reader = new FileReader();
-
-    reader.onload = () => {
-      setter((current) => ({
-        ...current,
-        image: reader.result,
-      }));
-    };
-
-    reader.onerror = () => {
-      alert('The image could not be loaded. Try another file.');
-    };
-
+    reader.onload = () => setter((current) => ({ ...current, image: reader.result }));
+    reader.onerror = () => alert('The image could not be loaded. Try another file.');
     reader.readAsDataURL(file);
   }
 
@@ -184,7 +138,6 @@ function App() {
 
   function handleEditProduct(product) {
     setEditingProductId(product.id);
-
     setEditForm({
       name: product.name,
       category: product.category,
@@ -195,7 +148,6 @@ function App() {
       rating: String(product.rating),
       image: product.image,
     });
-
     setShowAddForm(false);
     setShowEditForm(true);
     setFormMessage('');
@@ -203,31 +155,23 @@ function App() {
 
   function handleAddProduct(event) {
     event.preventDefault();
-
     const name = form.name.trim();
     const price = Number(form.price);
     const quantity = Number(form.quantity);
     const rating = Number(form.rating);
 
     if (!name || form.price === '' || form.quantity === '') {
-      setFormMessage(
-        'Please fill in the product name, price, and quantity.'
-      );
+      setFormMessage('Please fill in the product name, price, and quantity.');
       return;
     }
-
     if (!Number.isFinite(price) || price <= 0) {
       setFormMessage('Enter a price greater than zero.');
       return;
     }
-
     if (!Number.isInteger(quantity) || quantity < 0) {
-      setFormMessage(
-        'Quantity must be a whole number of zero or more.'
-      );
+      setFormMessage('Quantity must be a whole number of zero or more.');
       return;
     }
-
     if (!Number.isFinite(rating) || rating < 0 || rating > 5) {
       setFormMessage('Rating must be between 0 and 5.');
       return;
@@ -239,17 +183,13 @@ function App() {
       category: form.category,
       price,
       quantity,
-      description:
-        form.description.trim() ||
-        'A lovely fragrance for everyday use.',
-      specification:
-        form.specification.trim() || '100ml bottle',
+      description: form.description.trim() || 'A lovely fragrance for everyday use.',
+      specification: form.specification.trim() || '100ml bottle',
       rating,
       image: form.image || categoryImages[form.category],
     };
 
     setProducts((current) => [...current, newProduct]);
-
     setSelectedCategory('All');
     setSearchTerm('');
     setStockFilter('All');
@@ -260,7 +200,6 @@ function App() {
 
   function handleUpdateProduct(event) {
     event.preventDefault();
-
     const name = editForm.name.trim();
     const price = Number(editForm.price);
     const quantity = Number(editForm.quantity);
@@ -270,17 +209,14 @@ function App() {
       alert('Please fill in the product name, price, and quantity.');
       return;
     }
-
     if (!Number.isFinite(price) || price <= 0) {
       alert('Enter a price greater than zero.');
       return;
     }
-
     if (!Number.isInteger(quantity) || quantity < 0) {
       alert('Quantity must be a whole number of zero or more.');
       return;
     }
-
     if (!Number.isFinite(rating) || rating < 0 || rating > 5) {
       alert('Rating must be between 0 and 5.');
       return;
@@ -291,31 +227,20 @@ function App() {
       category: editForm.category,
       price,
       quantity,
-      description:
-        editForm.description.trim() ||
-        'A lovely fragrance for everyday use.',
-      specification:
-        editForm.specification.trim() || '100ml bottle',
+      description: editForm.description.trim() || 'A lovely fragrance for everyday use.',
+      specification: editForm.specification.trim() || '100ml bottle',
       rating,
       image: editForm.image || categoryImages[editForm.category],
     };
 
     setProducts((current) =>
-      current.map((product) =>
-        product.id === editingProductId
-          ? { ...product, ...updatedProduct }
-          : product
-      )
+      current.map((product) => product.id === editingProductId
+        ? { ...product, ...updatedProduct } : product)
     );
-
     setCart((current) =>
-      current.map((item) =>
-        item.id === editingProductId
-          ? { ...item, ...updatedProduct }
-          : item
-      )
+      current.map((item) => item.id === editingProductId
+        ? { ...item, ...updatedProduct } : item)
     );
-
     setShowEditForm(false);
     setEditingProductId(null);
     setFormMessage('Product updated successfully!');
@@ -327,230 +252,148 @@ function App() {
   }
 
   function addToCart(product) {
-    const currentProduct = products.find(
-      (item) => item.id === product.id
-    );
-
+    const currentProduct = products.find((item) => item.id === product.id);
     if (!currentProduct || currentProduct.quantity <= 0) {
       alert('Sorry, this product is out of stock.');
       return;
     }
-
-    setProducts((current) =>
-      current.map((item) =>
-        item.id === product.id
-          ? { ...item, quantity: item.quantity - 1 }
-          : item
-      )
-    );
-
+    setProducts((current) => current.map((item) =>
+      item.id === product.id ? { ...item, quantity: item.quantity - 1 } : item
+    ));
     setCart((current) => {
-      const existing = current.find(
-        (item) => item.id === product.id
-      );
-
+      const existing = current.find((item) => item.id === product.id);
       if (existing) {
-        return current.map((item) =>
-          item.id === product.id
-            ? { ...item, cartQuantity: item.cartQuantity + 1 }
-            : item
-        );
+        return current.map((item) => item.id === product.id
+          ? { ...item, cartQuantity: item.cartQuantity + 1 } : item);
       }
-
-      return [
-        ...current,
-        { ...currentProduct, cartQuantity: 1 },
-      ];
+      return [...current, { ...currentProduct, cartQuantity: 1 }];
     });
   }
 
   function increaseCartQuantity(productId) {
-    const product = products.find(
-      (item) => item.id === productId
-    );
-
+    const product = products.find((item) => item.id === productId);
     if (!product || product.quantity <= 0) {
       alert('No more stock available for this product.');
       return;
     }
-
-    setProducts((current) =>
-      current.map((item) =>
-        item.id === productId
-          ? { ...item, quantity: item.quantity - 1 }
-          : item
-      )
-    );
-
-    setCart((current) =>
-      current.map((item) =>
-        item.id === productId
-          ? { ...item, cartQuantity: item.cartQuantity + 1 }
-          : item
-      )
-    );
+    setProducts((current) => current.map((item) =>
+      item.id === productId ? { ...item, quantity: item.quantity - 1 } : item
+    ));
+    setCart((current) => current.map((item) =>
+      item.id === productId ? { ...item, cartQuantity: item.cartQuantity + 1 } : item
+    ));
   }
 
   function decreaseCartQuantity(productId) {
-    const cartItem = cart.find(
-      (item) => item.id === productId
-    );
-
+    const cartItem = cart.find((item) => item.id === productId);
     if (!cartItem) return;
-
     if (cartItem.cartQuantity === 1) {
       removeFromCart(productId);
       return;
     }
-
-    setProducts((current) =>
-      current.map((item) =>
-        item.id === productId
-          ? { ...item, quantity: item.quantity + 1 }
-          : item
-      )
-    );
-
-    setCart((current) =>
-      current.map((item) =>
-        item.id === productId
-          ? { ...item, cartQuantity: item.cartQuantity - 1 }
-          : item
-      )
-    );
+    setProducts((current) => current.map((item) =>
+      item.id === productId ? { ...item, quantity: item.quantity + 1 } : item
+    ));
+    setCart((current) => current.map((item) =>
+      item.id === productId ? { ...item, cartQuantity: item.cartQuantity - 1 } : item
+    ));
   }
 
   function removeFromCart(productId) {
-    const cartItem = cart.find(
-      (item) => item.id === productId
-    );
-
+    const cartItem = cart.find((item) => item.id === productId);
     if (!cartItem) return;
-
-    setProducts((current) =>
-      current.map((item) =>
-        item.id === productId
-          ? {
-              ...item,
-              quantity: item.quantity + cartItem.cartQuantity,
-            }
-          : item
-      )
-    );
-
-    setCart((current) =>
-      current.filter((item) => item.id !== productId)
-    );
+    setProducts((current) => current.map((item) =>
+      item.id === productId
+        ? { ...item, quantity: item.quantity + cartItem.cartQuantity }
+        : item
+    ));
+    setCart((current) => current.filter((item) => item.id !== productId));
   }
 
   function clearCart() {
-    setProducts((current) =>
-      current.map((product) => {
-        const cartItem = cart.find(
-          (item) => item.id === product.id
-        );
-
-        return cartItem
-          ? {
-              ...product,
-              quantity: product.quantity + cartItem.cartQuantity,
-            }
-          : product;
-      })
-    );
-
+    setProducts((current) => current.map((product) => {
+      const cartItem = cart.find((item) => item.id === product.id);
+      return cartItem
+        ? { ...product, quantity: product.quantity + cartItem.cartQuantity }
+        : product;
+    }));
     setCart([]);
+    setShowCheckout(false);
+  }
+
+  function handleCheckout(event) {
+    event.preventDefault();
+    if (cart.length === 0) {
+      alert('Your shopping cart is empty.');
+      return;
+    }
+    const name = customerName.trim();
+    if (!name) {
+      alert('Please enter the customer name.');
+      return;
+    }
+
+    const order = {
+      orderNumber: 'SS-' + Date.now().toString().slice(-8),
+      customerName: name,
+      orderDate: new Date().toLocaleString('en-PH'),
+      items: cart.map((item) => ({ ...item })),
+      total: cartTotal,
+    };
+
+    setCompletedOrder(order);
+    setCart([]);
+    setCustomerName('');
+    setShowCheckout(false);
+  }
+
+  function printReceipt() {
+    window.print();
   }
 
   function scrollToProduct(productId) {
-    setSelectedCategory('All');
+    const selectedProduct = products.find((product) => product.id === productId);
+    if (selectedProduct) setSelectedCategory(selectedProduct.category);
     setSearchTerm('');
     setStockFilter('All');
-
     window.setTimeout(() => {
-      const target = document.getElementById(
-        'product-' + productId
-      );
-
-      if (target) {
-        target.scrollIntoView({
-          behavior: 'smooth',
-          block: 'center',
-        });
-      }
+      const target = document.getElementById('products-section');
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 100);
   }
 
   function renderProductCard(product) {
     return (
-      <article
-        className="product-card"
-        id={'product-' + product.id}
-        key={product.id}
-      >
+      <article className="product-card" id={'product-' + product.id} key={product.id}>
         <div className="product-image">
           <img src={product.image} alt={product.name} />
-          <span className="product-category">
-            {product.category}
-          </span>
+          <span className="product-category">{product.category}</span>
         </div>
-
         <div className="product-details">
           <div className="product-title-row">
             <h3>{product.name}</h3>
             <span className="rating">★ {product.rating}</span>
           </div>
-
-          <h2 className="product-price">
-            ₱{formatPrice(product.price)}
-          </h2>
-
-          <p className="product-description">
-            {product.description}
-          </p>
-
-          <p className="product-specification">
-            {product.specification}
-          </p>
-
+          <h2 className="product-price">₱{formatPrice(product.price)}</h2>
+          <p className="product-description">{product.description}</p>
+          <p className="product-specification">{product.specification}</p>
           <div className="product-stock">
             <span>Available stock</span>
             <strong>{product.quantity}</strong>
           </div>
-
           {product.quantity > 0 && product.quantity < 5 && (
-            <p className="low-stock">
-              ⚠ Low stock — only {product.quantity} left
-            </p>
+            <p className="low-stock">⚠ Low stock — only {product.quantity} left</p>
           )}
-
-          {product.quantity === 0 && (
-            <p className="low-stock">Out of stock</p>
-          )}
-
+          {product.quantity === 0 && <p className="low-stock">Out of stock</p>}
           <p className="product-subtotal">
-            Inventory value: ₱
-            {formatPrice(product.price * product.quantity)}
+            Inventory value: ₱{formatPrice(product.price * product.quantity)}
           </p>
-
           <div className="product-card-actions">
-            <button
-              type="button"
-              className="edit-product-button"
-              onClick={() => handleEditProduct(product)}
-            >
-              Edit Product
-            </button>
-
-            <button
-              type="button"
-              className="add-to-cart-button"
-              onClick={() => addToCart(product)}
-              disabled={product.quantity === 0}
-            >
-              {product.quantity === 0
-                ? 'Out of Stock'
-                : '+ Add to Cart'}
+            <button type="button" className="edit-product-button"
+              onClick={() => handleEditProduct(product)}>Edit Product</button>
+            <button type="button" className="add-to-cart-button"
+              onClick={() => addToCart(product)} disabled={product.quantity === 0}>
+              {product.quantity === 0 ? 'Out of Stock' : '+ Add to Cart'}
             </button>
           </div>
         </div>
@@ -566,11 +409,8 @@ function App() {
           <h1>Scent Studio</h1>
           <p>Manage your fragrances and inventory in one place.</p>
         </div>
-
         <a className="header-cart" href="#shopping-cart">
-          <span>🛒</span>
-          <span>Cart</span>
-          <strong>{cartCount}</strong>
+          <span>🛒</span><span>Cart</span><strong>{cartCount}</strong>
         </a>
       </header>
 
@@ -579,30 +419,20 @@ function App() {
           <div>
             <p className="banner-label">DISCOVER YOUR SCENT</p>
             <h2>Find Your Signature Scent</h2>
-            <p>
-              Explore fragrances for every mood and every moment.
-            </p>
+            <p>Explore fragrances for every mood and every moment.</p>
           </div>
           <span className="banner-icon">✦</span>
         </section>
 
         <section className="section">
           <div className="section-heading">
-            <div>
-              <p className="eyebrow">OUR FAVORITES</p>
-              <h2>Featured Products</h2>
-            </div>
+            <div><p className="eyebrow">OUR FAVORITES</p><h2>Featured Products</h2></div>
             <span>{featuredProducts.length} featured</span>
           </div>
-
           <div className="featured-list">
             {featuredProducts.map((product) => (
-              <button
-                type="button"
-                className="featured-item"
-                key={product.id}
-                onClick={() => scrollToProduct(product.id)}
-              >
+              <button type="button" className="featured-item" key={product.id}
+                onClick={() => scrollToProduct(product.id)}>
                 <img src={product.image} alt={product.name} />
                 <h3>{product.name}</h3>
                 <p>₱{formatPrice(product.price)}</p>
@@ -611,234 +441,103 @@ function App() {
           </div>
         </section>
 
-        <section className="section">
+        <section className="section products-section" id="products-section">
           <div className="section-heading products-heading">
-            <div>
-              <p className="eyebrow">BROWSE THE COLLECTION</p>
-              <h2>Products</h2>
-            </div>
-
+            <div><p className="eyebrow">BROWSE THE COLLECTION</p><h2>Products</h2></div>
             <div className="product-filters">
               <label className="search-label">
                 Search Products
-                <input
-                  type="search"
-                  className="product-search"
-                  placeholder="Search cologne name..."
-                  value={searchTerm}
-                  onChange={(event) =>
-                    setSearchTerm(event.target.value)
-                  }
-                />
+                <input type="search" className="product-search"
+                  placeholder="Search cologne name..." value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)} />
               </label>
-
               <label className="category-select-label">
                 Category
-                <select
-                  value={selectedCategory}
-                  onChange={(event) =>
-                    setSelectedCategory(event.target.value)
-                  }
-                >
+                <select value={selectedCategory}
+                  onChange={(event) => setSelectedCategory(event.target.value)}>
                   <option value="All">All Categories</option>
-                  {categories.map((category) => (
-                    <option value={category} key={category}>
-                      {category}
-                    </option>
-                  ))}
+                  {categories.map((category) => <option value={category} key={category}>{category}</option>)}
                 </select>
               </label>
-
               <label className="category-select-label">
                 Stock Status
-                <select
-                  value={stockFilter}
-                  onChange={(event) =>
-                    setStockFilter(event.target.value)
-                  }
-                >
+                <select value={stockFilter}
+                  onChange={(event) => setStockFilter(event.target.value)}>
                   <option value="All">All Stock</option>
                   <option value="Low Stock">Low Stock (1–4)</option>
                   <option value="Out of Stock">Out of Stock (0)</option>
                 </select>
               </label>
-
-              <button
-                type="button"
-                className="primary-button"
+              <button type="button" className="primary-button"
                 onClick={() => {
                   setShowEditForm(false);
                   setEditingProductId(null);
                   setShowAddForm((current) => !current);
                   setFormMessage('');
-                }}
-              >
+                }}>
                 {showAddForm ? 'Close Add Form' : '+ Add New Product'}
               </button>
             </div>
           </div>
 
-          <p className="results-count">
-            Showing {filteredProducts.length} of {totalProducts} products
-          </p>
-
+          <p className="results-count">Showing {filteredProducts.length} of {totalProducts} products</p>
           {formMessage && !showAddForm && !showEditForm && (
-            <p className="form-message" role="status">
-              {formMessage}
-            </p>
+            <p className="form-message" role="status">{formMessage}</p>
           )}
 
-          <div className="product-grid">
-            {filteredProducts.map(renderProductCard)}
-          </div>
-
+          <div className="product-grid">{filteredProducts.map(renderProductCard)}</div>
           {filteredProducts.length === 0 && (
-            <p className="empty-cart">
-              No products found. Try changing your search or filters.
-            </p>
+            <p className="empty-cart">No products found. Try changing your search or filters.</p>
           )}
 
           {showAddForm && (
             <section className="panel add-product-panel">
               <div className="section-heading">
-                <div>
-                  <p className="eyebrow">INVENTORY MANAGEMENT</p>
-                  <h2>Add New Product</h2>
-                </div>
+                <div><p className="eyebrow">INVENTORY MANAGEMENT</p><h2>Add New Product</h2></div>
               </div>
-
               <form onSubmit={handleAddProduct}>
                 <div className="form-grid">
-                  <label>
-                    Product Name *
-                    <input
-                      name="name"
-                      value={form.name}
-                      onChange={handleFormChange}
-                      placeholder="e.g. Rose Garden"
-                      required
-                    />
+                  <label>Product Name *
+                    <input name="name" value={form.name} onChange={handleFormChange}
+                      placeholder="e.g. Rose Garden" required />
                   </label>
-
-                  <label>
-                    Category *
-                    <select
-                      name="category"
-                      value={form.category}
-                      onChange={handleFormChange}
-                      required
-                    >
-                      {categories.map((category) => (
-                        <option key={category} value={category}>
-                          {category}
-                        </option>
-                      ))}
+                  <label>Category *
+                    <select name="category" value={form.category} onChange={handleFormChange} required>
+                      {categories.map((category) => <option key={category} value={category}>{category}</option>)}
                     </select>
                   </label>
-
-                  <label>
-                    Price (₱) *
-                    <input
-                      name="price"
-                      type="number"
-                      min="0.01"
-                      step="0.01"
-                      value={form.price}
-                      onChange={handleFormChange}
-                      placeholder="150.00"
-                      required
-                    />
+                  <label>Price (₱) *
+                    <input name="price" type="number" min="0.01" step="0.01"
+                      value={form.price} onChange={handleFormChange} placeholder="150.00" required />
                   </label>
-
-                  <label>
-                    Stock Quantity *
-                    <input
-                      name="quantity"
-                      type="number"
-                      min="0"
-                      step="1"
-                      value={form.quantity}
-                      onChange={handleFormChange}
-                      placeholder="10"
-                      required
-                    />
+                  <label>Stock Quantity *
+                    <input name="quantity" type="number" min="0" step="1"
+                      value={form.quantity} onChange={handleFormChange} placeholder="10" required />
                   </label>
-
-                  <label>
-                    Specification
-                    <input
-                      name="specification"
-                      value={form.specification}
-                      onChange={handleFormChange}
-                      placeholder="100ml bottle"
-                    />
+                  <label>Specification
+                    <input name="specification" value={form.specification}
+                      onChange={handleFormChange} placeholder="100ml bottle" />
                   </label>
-
-                  <label>
-                    Rating (0–5)
-                    <input
-                      name="rating"
-                      type="number"
-                      min="0"
-                      max="5"
-                      step="0.1"
-                      value={form.rating}
-                      onChange={handleFormChange}
-                    />
+                  <label>Rating (0–5)
+                    <input name="rating" type="number" min="0" max="5" step="0.1"
+                      value={form.rating} onChange={handleFormChange} />
                   </label>
-
-                  <label className="form-full-width">
-                    Description
-                    <textarea
-                      name="description"
-                      value={form.description}
-                      onChange={handleFormChange}
-                      placeholder="Describe the fragrance..."
-                      rows="3"
-                    />
+                  <label className="form-full-width">Description
+                    <textarea name="description" value={form.description}
+                      onChange={handleFormChange} placeholder="Describe the fragrance..." rows="3" />
                   </label>
-
-                  <label className="form-full-width">
-                    Product Image (optional)
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                    />
+                  <label className="form-full-width">Product Image (optional)
+                    <input type="file" accept="image/*" onChange={handleImageChange} />
                   </label>
                 </div>
-
-                {form.image && (
-                  <div className="new-image-preview">
-                    <p>Image preview</p>
-                    <img
-                      src={form.image}
-                      alt="New product preview"
-                    />
-                  </div>
-                )}
-
-                {formMessage && (
-                  <p className="form-message" role="alert">
-                    {formMessage}
-                  </p>
-                )}
-
+                {form.image && <div className="new-image-preview"><p>Image preview</p><img src={form.image} alt="New product preview" /></div>}
+                {formMessage && <p className="form-message" role="alert">{formMessage}</p>}
                 <div className="form-actions">
-                  <button type="submit" className="primary-button">
-                    Save Product
-                  </button>
-
-                  <button
-                    type="button"
-                    className="secondary-button"
-                    onClick={() => {
-                      setShowAddForm(false);
-                      setFormMessage('');
-                    }}
-                  >
-                    Cancel
-                  </button>
+                  <button type="submit" className="primary-button">Save Product</button>
+                  <button type="button" className="secondary-button" onClick={() => {
+                    setShowAddForm(false);
+                    setFormMessage('');
+                  }}>Cancel</button>
                 </div>
               </form>
             </section>
@@ -847,130 +546,45 @@ function App() {
           {showEditForm && (
             <section className="panel add-product-panel">
               <div className="section-heading">
-                <div>
-                  <p className="eyebrow">INVENTORY MANAGEMENT</p>
-                  <h2>Edit Product</h2>
-                </div>
+                <div><p className="eyebrow">INVENTORY MANAGEMENT</p><h2>Edit Product</h2></div>
               </div>
-
               <form onSubmit={handleUpdateProduct}>
                 <div className="form-grid">
-                  <label>
-                    Product Name *
-                    <input
-                      name="name"
-                      value={editForm.name}
-                      onChange={handleEditFormChange}
-                      required
-                    />
+                  <label>Product Name *
+                    <input name="name" value={editForm.name} onChange={handleEditFormChange} required />
                   </label>
-
-                  <label>
-                    Category *
-                    <select
-                      name="category"
-                      value={editForm.category}
-                      onChange={handleEditFormChange}
-                      required
-                    >
-                      {categories.map((category) => (
-                        <option key={category} value={category}>
-                          {category}
-                        </option>
-                      ))}
+                  <label>Category *
+                    <select name="category" value={editForm.category} onChange={handleEditFormChange} required>
+                      {categories.map((category) => <option key={category} value={category}>{category}</option>)}
                     </select>
                   </label>
-
-                  <label>
-                    Price (₱) *
-                    <input
-                      name="price"
-                      type="number"
-                      min="0.01"
-                      step="0.01"
-                      value={editForm.price}
-                      onChange={handleEditFormChange}
-                      required
-                    />
+                  <label>Price (₱) *
+                    <input name="price" type="number" min="0.01" step="0.01"
+                      value={editForm.price} onChange={handleEditFormChange} required />
                   </label>
-
-                  <label>
-                    Stock Quantity *
-                    <input
-                      name="quantity"
-                      type="number"
-                      min="0"
-                      step="1"
-                      value={editForm.quantity}
-                      onChange={handleEditFormChange}
-                      required
-                    />
+                  <label>Stock Quantity *
+                    <input name="quantity" type="number" min="0" step="1"
+                      value={editForm.quantity} onChange={handleEditFormChange} required />
                   </label>
-
-                  <label>
-                    Specification
-                    <input
-                      name="specification"
-                      value={editForm.specification}
-                      onChange={handleEditFormChange}
-                    />
+                  <label>Specification
+                    <input name="specification" value={editForm.specification} onChange={handleEditFormChange} />
                   </label>
-
-                  <label>
-                    Rating (0–5)
-                    <input
-                      name="rating"
-                      type="number"
-                      min="0"
-                      max="5"
-                      step="0.1"
-                      value={editForm.rating}
-                      onChange={handleEditFormChange}
-                    />
+                  <label>Rating (0–5)
+                    <input name="rating" type="number" min="0" max="5" step="0.1"
+                      value={editForm.rating} onChange={handleEditFormChange} />
                   </label>
-
-                  <label className="form-full-width">
-                    Description
-                    <textarea
-                      name="description"
-                      value={editForm.description}
-                      onChange={handleEditFormChange}
-                      rows="3"
-                    />
+                  <label className="form-full-width">Description
+                    <textarea name="description" value={editForm.description}
+                      onChange={handleEditFormChange} rows="3" />
                   </label>
-
-                  <label className="form-full-width">
-                    Change Product Image
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleEditImageChange}
-                    />
+                  <label className="form-full-width">Change Product Image
+                    <input type="file" accept="image/*" onChange={handleEditImageChange} />
                   </label>
                 </div>
-
-                {editForm.image && (
-                  <div className="new-image-preview">
-                    <p>Image preview</p>
-                    <img
-                      src={editForm.image}
-                      alt="Product preview"
-                    />
-                  </div>
-                )}
-
+                {editForm.image && <div className="new-image-preview"><p>Image preview</p><img src={editForm.image} alt="Product preview" /></div>}
                 <div className="form-actions">
-                  <button type="submit" className="primary-button">
-                    Save Changes
-                  </button>
-
-                  <button
-                    type="button"
-                    className="secondary-button"
-                    onClick={cancelEdit}
-                  >
-                    Cancel
-                  </button>
+                  <button type="submit" className="primary-button">Save Changes</button>
+                  <button type="button" className="secondary-button" onClick={cancelEdit}>Cancel</button>
                 </div>
               </form>
             </section>
@@ -979,100 +593,102 @@ function App() {
 
         <section className="section cart-panel" id="shopping-cart">
           <div className="section-heading">
-            <div>
-              <p className="eyebrow">YOUR ORDER</p>
-              <h2>Shopping Cart</h2>
-            </div>
+            <div><p className="eyebrow">YOUR ORDER</p><h2>Shopping Cart</h2></div>
             <span>{cartCount} items</span>
           </div>
 
           {cart.length === 0 ? (
-            <p className="empty-cart">
-              Your cart is empty. Add a fragrance to get started!
-            </p>
+            <p className="empty-cart">Your cart is empty. Add a fragrance to get started!</p>
           ) : (
             <>
               <div className="cart-items">
                 {cart.map((item) => (
                   <div className="cart-row" key={item.id}>
                     <img src={item.image} alt={item.name} />
-
-                    <div className="cart-item-info">
-                      <h3>{item.name}</h3>
-                      <p>₱{formatPrice(item.price)} each</p>
-                    </div>
-
+                    <div className="cart-item-info"><h3>{item.name}</h3><p>₱{formatPrice(item.price)} each</p></div>
                     <div className="quantity-controls">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          decreaseCartQuantity(item.id)
-                        }
-                        aria-label={`Decrease ${item.name} quantity`}
-                      >
-                        −
-                      </button>
-
+                      <button type="button" onClick={() => decreaseCartQuantity(item.id)}
+                        aria-label={`Decrease ${item.name} quantity`}>−</button>
                       <strong>{item.cartQuantity}</strong>
-
-                      <button
-                        type="button"
-                        onClick={() =>
-                          increaseCartQuantity(item.id)
-                        }
-                        aria-label={`Increase ${item.name} quantity`}
-                      >
-                        +
-                      </button>
+                      <button type="button" onClick={() => increaseCartQuantity(item.id)}
+                        aria-label={`Increase ${item.name} quantity`}>+</button>
                     </div>
-
-                    <strong className="cart-subtotal">
-                      ₱
-                      {formatPrice(item.price * item.cartQuantity)}
-                    </strong>
-
-                    <button
-                      type="button"
-                      className="remove-cart-button"
-                      onClick={() => removeFromCart(item.id)}
-                    >
-                      Remove
-                    </button>
+                    <strong className="cart-subtotal">₱{formatPrice(item.price * item.cartQuantity)}</strong>
+                    <button type="button" className="remove-cart-button"
+                      onClick={() => removeFromCart(item.id)}>Remove</button>
                   </div>
                 ))}
               </div>
+              <div className="cart-total"><span>Total Amount</span><strong>₱{formatPrice(cartTotal)}</strong></div>
+              <button type="button" className="clear-cart-button" onClick={clearCart}>Clear Cart</button>
+              <button type="button" className="checkout-button" onClick={() => {
+                setCompletedOrder(null);
+                setShowCheckout(true);
+              }}>Proceed to Checkout</button>
 
-              <div className="cart-total">
-                <span>Total Amount</span>
-                <strong>₱{formatPrice(cartTotal)}</strong>
-              </div>
-
-              <button
-                type="button"
-                className="clear-cart-button"
-                onClick={clearCart}
-              >
-                Clear Cart
-              </button>
+              {showCheckout && (
+                <div className="checkout-form-panel">
+                  <h3>Checkout Summary</h3>
+                  <p>Please review your order before confirming.</p>
+                  <div className="checkout-items">
+                    {cart.map((item) => (
+                      <div className="checkout-item" key={item.id}>
+                        <span>{item.name} × {item.cartQuantity}</span>
+                        <strong>₱{formatPrice(item.price * item.cartQuantity)}</strong>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="checkout-total"><span>Total Amount</span><strong>₱{formatPrice(cartTotal)}</strong></div>
+                  <form onSubmit={handleCheckout}>
+                    <label>Customer Name *
+                      <input type="text" value={customerName}
+                        onChange={(event) => setCustomerName(event.target.value)}
+                        placeholder="Enter customer name" required />
+                    </label>
+                    <div className="form-actions">
+                      <button type="submit" className="checkout-button">Confirm Order</button>
+                      <button type="button" className="secondary-button" onClick={() => setShowCheckout(false)}>Cancel</button>
+                    </div>
+                  </form>
+                </div>
+              )}
             </>
           )}
         </section>
 
+        {completedOrder && (
+          <section className="receipt-panel" id="order-receipt">
+            <div className="receipt-header">
+              <p className="eyebrow">SCENT STUDIO</p>
+              <h2>Order Receipt</h2>
+              <p>Thank you for your purchase!</p>
+            </div>
+            <div className="receipt-details">
+              <p><strong>Order Number:</strong> {completedOrder.orderNumber}</p>
+              <p><strong>Customer:</strong> {completedOrder.customerName}</p>
+              <p><strong>Date:</strong> {completedOrder.orderDate}</p>
+            </div>
+            <h3>Order Details</h3>
+            <div className="receipt-items">
+              {completedOrder.items.map((item) => (
+                <div className="receipt-item" key={item.id}>
+                  <div><strong>{item.name}</strong><p>₱{formatPrice(item.price)} × {item.cartQuantity}</p></div>
+                  <strong>₱{formatPrice(item.price * item.cartQuantity)}</strong>
+                </div>
+              ))}
+            </div>
+            <div className="receipt-total"><span>Total Amount</span><strong>₱{formatPrice(completedOrder.total)}</strong></div>
+            <div className="form-actions">
+              <button type="button" className="checkout-button" onClick={printReceipt}>Print Receipt</button>
+              <button type="button" className="secondary-button" onClick={() => setCompletedOrder(null)}>Close Receipt</button>
+            </div>
+          </section>
+        )}
+
         <section className="inventory-summary-panel">
-          <div>
-            <span>Total Products</span>
-            <strong>{totalProducts}</strong>
-          </div>
-
-          <div>
-            <span>Total Available Stock</span>
-            <strong>{totalStock}</strong>
-          </div>
-
-          <div>
-            <span>Inventory Value</span>
-            <strong>₱{formatPrice(totalInventoryValue)}</strong>
-          </div>
+          <div><span>Total Products</span><strong>{totalProducts}</strong></div>
+          <div><span>Total Available Stock</span><strong>{totalStock}</strong></div>
+          <div><span>Inventory Value</span><strong>₱{formatPrice(totalInventoryValue)}</strong></div>
         </section>
       </main>
     </div>
