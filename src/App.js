@@ -7,6 +7,30 @@ import midnightMuskImage from './images/midnight-musk.png';
 import goldenAmberImage from './images/golden-amber.png';
 import citrusBurstImage from './images/citrus-burst.png';
 
+import OceanBreeze from './images/Ocean_Breeze.jpg';
+import SeaMist from './images/Sea_Mist.jpg';
+import AquaMarine from './images/Aqua_Marine.jpg';
+import BlueTide from './images/Blue_Tide.jpg';
+
+import RoseBlush from './images/Rose_Blush.jpg';
+import CherryPetal from './images/Cherry_Petal.jpg';
+import LotusDream from './images/Lotus_Dream.jpg';
+import VanillaRose from './images/Vanilla_Rose.jpg';
+
+import Noir from './images/Noir.jpg';
+import Woodland from './images/Woodland.jpg';
+import Midnight from './images/Midnight.jpg';
+import LeatherOud from './images/Leather_Oud.jpg';
+
+import AmberGlow from './images/Amber_Glow.jpg';
+import VanillaAmber from './images/Vanilla_Amber.jpg';
+import TobaccoVanilla from './images/Tobacco_Vanilla.jpg';
+import Sandalwood from './images/Sandalwood.jpg';
+
+import CitrusSun from './images/Citrus_Sun.jpg';
+import LemonZest from './images/Lemon_Zest.jpg';
+import OrangeBlossom from './images/Orange_Blossom.jpg';
+import LimeFresh from './images/Lime_Fresh.jpg';
 const categories = ['Fresh', 'Floral', 'Woody', 'Amber', 'Citrus'];
 
 const categoryImages = {
@@ -15,6 +39,33 @@ const categoryImages = {
   Woody: midnightMuskImage,
   Amber: goldenAmberImage,
   Citrus: citrusBurstImage,
+};
+
+const productImages = {
+  1: OceanBreeze,
+  2: SeaMist,
+  3: AquaMarine,
+  4: BlueTide,
+
+  5: RoseBlush,
+  6: CherryPetal,
+  7: LotusDream,
+  8: VanillaRose,
+
+  9: Noir,
+  10: Woodland,
+  11: Midnight,
+  12: LeatherOud,
+
+  13: AmberGlow,
+  14: VanillaAmber,
+  15: TobaccoVanilla,
+  16: Sandalwood,
+
+  17: CitrusSun,
+  18: LemonZest,
+  19: OrangeBlossom,
+  20: LimeFresh,
 };
 
 const initialProducts = [
@@ -38,7 +89,10 @@ const initialProducts = [
   { id: 18, name: 'Lemon Zest', category: 'Citrus', price: 165, quantity: 12, description: 'A zesty lemon-inspired scent.', specification: '100ml bottle', rating: 4.4 },
   { id: 19, name: 'Orange Splash', category: 'Citrus', price: 170, quantity: 10, description: 'A lively orange fragrance.', specification: '100ml bottle', rating: 4.5 },
   { id: 20, name: 'Lime Fresh', category: 'Citrus', price: 175, quantity: 8, description: 'A crisp, refreshing citrus scent.', specification: '100ml bottle', rating: 4.3 },
-].map((product) => ({ ...product, image: categoryImages[product.category] }));
+  ].map((product) => ({
+    ...product,
+    image: productImages[product.id],
+  }));
 
 function formatPrice(amount) {
   return Number(amount).toLocaleString('en-PH', {
